@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -jar target/rss-engine-1.0-SNAPSHOT-runner.jar

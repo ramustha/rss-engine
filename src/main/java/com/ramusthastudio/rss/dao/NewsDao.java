@@ -2,6 +2,8 @@ package com.ramusthastudio.rss.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ramusthastudio.rss.dao.base.AutoIdentityEntityBase;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.smallrye.mutiny.Uni;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
@@ -50,9 +52,35 @@ public class NewsDao extends AutoIdentityEntityBase {
     @JoinColumn(name = "item_id", referencedColumnName = "id")
     public ItemDao item;
 
+    public static Uni<PanacheEntityBase> findDuplicate(NewsDao item) {
+        return find("title = ?1 and link = ?2", item.title, item.link).firstResult();
+    }
+
+    public static Uni<PanacheEntityBase> findDuplicate(ItemDao item) {
+        return find("title = ?1 and link = ?2", item.title, item.link).firstResult();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NewsDao newsDao = (NewsDao) o;
+
+        if (!title.equals(newsDao.title)) return false;
+        return link.equals(newsDao.link);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = title.hashCode();
+        result = 31 * result + link.hashCode();
+        return result;
+    }
+
     @Override
     public String toString() {
-        return "News{" +
+        return "NewsDao{" +
                 "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", content='" + content + '\'' +

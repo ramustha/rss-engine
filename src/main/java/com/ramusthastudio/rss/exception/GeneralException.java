@@ -1,5 +1,6 @@
 package com.ramusthastudio.rss.exception;
 
+import io.vertx.pgclient.PgException;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
@@ -11,22 +12,36 @@ import javax.ws.rs.core.Response;
 public class GeneralException {
     @Inject Logger log;
 
-    @ServerExceptionMapper public RestResponse<ErrorMapper> mapException(RuntimeException e) {
+    @ServerExceptionMapper
+    public RestResponse<ErrorMapper> mapException(RuntimeException e) {
         if (e instanceof WebApplicationException) {
             WebApplicationException web = (WebApplicationException) e;
+
             Response response = web.getResponse();
             RestResponse<ErrorMapper> finalResponse = RestResponse
                     .status(response.getStatusInfo(),
                             new ErrorMapper(response.getStatus(), e.getClass().getSimpleName(), e.getMessage()));
 
-            log.error("catch error with entity", e);
+            log.error("catch web error", e);
+            return finalResponse;
+        }
+        if (e instanceof PgException) {
+            PgException pg = (PgException) e;
+
+            RestResponse<ErrorMapper> finalResponse = RestResponse
+                    .status(Response.Status.INTERNAL_SERVER_ERROR,
+                            new ErrorMapper(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                                    e.getClass().getSimpleName(), "Database unavailable with code " + pg.getCode()));
+
+            log.error("catch database error", e);
             return finalResponse;
         }
         RestResponse<ErrorMapper> finalResponse = RestResponse
                 .status(Response.Status.INTERNAL_SERVER_ERROR,
-                        new ErrorMapper(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getClass().getSimpleName(), e.getMessage()));
+                        new ErrorMapper(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                                e.getClass().getSimpleName(), e.getMessage()));
 
-        log.fatal("unexpected error with entity", e);
+        log.fatal("unexpected error", e);
         return finalResponse;
     }
 

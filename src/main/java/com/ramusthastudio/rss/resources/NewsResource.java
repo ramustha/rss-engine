@@ -36,7 +36,6 @@ public class NewsResource {
     }
 
     @GET
-    @CacheResult(cacheName = "news-list-cache")
     @Path("search")
     @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getNews(@Context UriInfo request) {

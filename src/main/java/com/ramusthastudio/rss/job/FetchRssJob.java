@@ -2,8 +2,8 @@ package com.ramusthastudio.rss.job;
 
 import com.apptastic.rssreader.Item;
 import com.apptastic.rssreader.RssReader;
-import com.ramusthastudio.rss.dao.ItemDao;
 import com.ramusthastudio.rss.dao.ChannelDao;
+import com.ramusthastudio.rss.dao.ItemDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.JsoupParser;
 import io.quarkus.hibernate.reactive.panache.Panache;
@@ -51,32 +51,44 @@ public class FetchRssJob {
                         ItemDao.findAll()
                                 .filter("deletedFilter", Parameters.with("isDeleted", false))
                                 .filter("statusFilter", Parameters.with("status", "PENDING"))
-                                .stream()
-                                .onItem().transformToUniAndMerge(item -> {
-                                    Log.infof("convert item = %s", item);
+                                .stream().select().distinct()
+                                .onItem().transformToUniAndMerge(item ->
+                                        NewsDao.findDuplicate((ItemDao) item)
+                                                .onItem().ifNotNull().transform(current -> {
+                                                    ItemDao itemDao = (ItemDao) item;
+                                                    itemDao.status = "COMPLETED";
 
-                                    ItemDao itemDao = (ItemDao) item;
-                                    itemDao.status = "COMPLETED";
+                                                    NewsDao newsDao = (NewsDao) current;
+                                                    persistAndUpdate(newsDao, itemDao);
 
-                                    NewsDao newsDao = new NewsDao();
-                                    newsDao.title = cleanText(itemDao.title);
-                                    newsDao.description = cleanText(itemDao.description);
-                                    newsDao.content = newsDao.description;
-                                    newsDao.category = itemDao.category;
-                                    newsDao.link = itemDao.link;
-                                    newsDao.imageLink = getImageLink(itemDao.description);
-                                    newsDao.pubDate = itemDao.pubDate;
-                                    newsDao.channelIconLink = itemDao.channel.link;
-                                    newsDao.item = itemDao;
+                                                    Log.infof("update news existing = %s", newsDao);
+                                                    return itemDao.persist().chain(newsDao::persist);
+                                                }).onItem().ifNull().switchTo(() -> {
+                                                    ItemDao itemDao = (ItemDao) item;
+                                                    itemDao.status = "COMPLETED";
 
-                                    Log.infof("save news = %s", newsDao);
+                                                    NewsDao newsDao = new NewsDao();
+                                                    persistAndUpdate(newsDao, itemDao);
 
-                                    return newsDao.persist().chain(itemDao::persist);
-                                })
+                                                    Log.infof("save news = %s", item);
+                                                    return itemDao.persist().chain(newsDao::persist);
+                                                }))
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni()
                 )
                 .await().indefinitely();
+    }
+
+    private void persistAndUpdate(NewsDao newsDao, ItemDao itemDao) {
+        newsDao.title = cleanText(itemDao.title);
+        newsDao.description = cleanText(itemDao.description);
+        newsDao.content = newsDao.description;
+        newsDao.category = itemDao.category;
+        newsDao.link = itemDao.link;
+        newsDao.imageLink = getImageLink(itemDao.description);
+        newsDao.pubDate = itemDao.pubDate;
+        newsDao.channelIconLink = itemDao.channel.link;
+        newsDao.item = itemDao;
     }
 
     public Uni<Void> persistAndUpdate(ChannelDao channelDao) {
@@ -119,11 +131,11 @@ public class FetchRssJob {
                                     itemDao.pubDate = item.pubDate;
                                     itemDao.channel = item.channel;
 
-                                    Log.infof("update existing = %s", itemDao);
+                                    Log.infof("update item existing = %s", itemDao);
                                     return itemDao.channel.persist().chain(itemDao::persist);
                                 }).onItem().ifNull().switchTo(() -> {
 
-                                    Log.infof("save = %s", item);
+                                    Log.infof("save item = %s", item);
                                     return item.channel.persist().chain(item::persist);
                                 }))
                 .onItem().ignoreAsUni();

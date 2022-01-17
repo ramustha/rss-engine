@@ -27,7 +27,7 @@ import static com.ramusthastudio.rss.helper.ObjectProducer.readRss;
 public class FetchRssJob {
     @Inject RssReader rssReader;
 
-    @Scheduled(every = "60s")
+    @Scheduled(cron = "{fetch.cron.expr}")
     public void executeFetcherJob() {
         Log.infof("Starting fetch RSS data ⚡");
 
@@ -43,7 +43,7 @@ public class FetchRssJob {
 
     }
 
-    @Scheduled(every = "30s")
+    @Scheduled(cron = "{convert.cron.expr}")
     public void executeConverterJon() {
         Log.infof("Starting convert RSS data ⚡");
 
@@ -67,6 +67,7 @@ public class FetchRssJob {
                                     newsDao.imageLink = getImageLink(itemDao.description);
                                     newsDao.pubDate = itemDao.pubDate;
                                     newsDao.channelIconLink = itemDao.channel.link;
+                                    newsDao.item = itemDao;
 
                                     Log.infof("save news = %s", newsDao);
 

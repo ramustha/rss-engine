@@ -1,5 +1,6 @@
 package com.ramusthastudio.rss.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ramusthastudio.rss.dao.base.AutoIdentityEntityBase;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -7,8 +8,11 @@ import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.Cacheable;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -40,6 +44,11 @@ public class NewsDao extends AutoIdentityEntityBase {
     @NotBlank
     @Column(name = "channel_icon_link")
     public String channelIconLink;
+
+    @JsonIgnore
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "item_id", referencedColumnName = "id")
+    public ItemDao item;
 
     @Override
     public String toString() {

@@ -1,6 +1,6 @@
 package com.ramusthastudio.rss.resources;
 
-import com.ramusthastudio.rss.dao.ManagementChannelDao;
+import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.helper.QueryFilter;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.panache.common.Parameters;
@@ -33,30 +33,30 @@ public class ManagementChannelResource {
 
     @POST
     @Path("channel")
-    public Uni<ManagementChannelDao> addChannel(@Valid ManagementChannelDao request) {
+    public Uni<ChannelDao> addChannel(@Valid ChannelDao request) {
         return Panache.withTransaction(request::persist);
     }
 
     @GET
     @Path("channel/{id}")
-    public Uni<ManagementChannelDao> getChannelBy(@NotBlank @PathParam("id") String id) {
-        return ManagementChannelDao.findById(id);
+    public Uni<ChannelDao> getChannelBy(@NotBlank @PathParam("id") String id) {
+        return ChannelDao.findById(id);
     }
 
     @DELETE
     @Path("channel/{id}")
     public Uni<Response> deleteChannelBy(@NotBlank @PathParam("id") String id) {
-        return Panache.withTransaction(() -> ManagementChannelDao.deleteById(id)
+        return Panache.withTransaction(() -> ChannelDao.deleteById(id)
                 .map(e -> e ? Response.noContent().build() : Response.status(Response.Status.NOT_FOUND).build()));
     }
 
     @PUT
     @Path("channel/{id}")
-    public Uni<ManagementChannelDao> updateChannel(@NotBlank @PathParam("id") String id,
-                                                   @Valid ManagementChannelDao request) {
-        return Panache.withTransaction(() -> ManagementChannelDao.findById(id)
+    public Uni<ChannelDao> updateChannel(@NotBlank @PathParam("id") String id,
+                                         @Valid ChannelDao request) {
+        return Panache.withTransaction(() -> ChannelDao.findById(id)
                 .map(entity -> {
-                    ManagementChannelDao channelEntity = (ManagementChannelDao) entity;
+                    ChannelDao channelEntity = (ChannelDao) entity;
                     channelEntity.title = request.title;
                     channelEntity.description = request.description;
                     channelEntity.category = request.category;
@@ -70,15 +70,15 @@ public class ManagementChannelResource {
     @GET
     @Path("channel")
     @SuppressWarnings("unchecked")
-    public Uni<List<ManagementChannelDao>> getChannel(@Context UriInfo request) {
-        Map<String, Object> map = QueryFilter.generateQuery(request, ManagementChannelDao.class);
+    public Uni<List<ChannelDao>> getChannel(@Context UriInfo request) {
+        Map<String, Object> map = QueryFilter.generateQuery(request, ChannelDao.class);
         if (map.get("sort") == null) {
-            return ManagementChannelDao
+            return ChannelDao
                     .find(map.get("query").toString(), (Map<String, Object>) map.get("parameters"))
                     .filter("deletedFilter", Parameters.with("isDeleted", false))
                     .page((int) map.get("index"), (int) map.get("size")).list();
         }
-        return ManagementChannelDao
+        return ChannelDao
                 .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
                 .filter("deletedFilter", Parameters.with("isDeleted", false))
                 .page((int) map.get("index"), (int) map.get("size")).list();

@@ -16,8 +16,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -44,12 +42,12 @@ public class ItemDao extends AutoIdentityEntityBase {
     @Column(name = "pub_date")
     public ZonedDateTime pubDate;
     public String status = "PENDING";
-    @OneToOne(cascade = CascadeType.ALL)
+    @NotBlank
+    @Column(name = "image_url")
+    public String imageUrl;
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "channel_id", referencedColumnName = "id")
     public ChannelDao channel;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    public ImageDao image;
 
     public static Uni<PanacheEntityBase> findDuplicate(ItemDao item) {
         return find("title = ?1 and link = ?2", item.title, item.link).firstResult();
@@ -76,8 +74,7 @@ public class ItemDao extends AutoIdentityEntityBase {
     @Override
     public String toString() {
         return "ItemDao{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
+                "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", link='" + link + '\'' +
                 ", author='" + author + '\'' +
@@ -85,6 +82,8 @@ public class ItemDao extends AutoIdentityEntityBase {
                 ", guid='" + guid + '\'' +
                 ", isPermaLink=" + isPermaLink +
                 ", pubDate=" + pubDate +
+                ", status='" + status + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 ", channel=" + channel +
                 '}';
     }

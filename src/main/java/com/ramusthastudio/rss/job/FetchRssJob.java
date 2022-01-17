@@ -2,9 +2,8 @@ package com.ramusthastudio.rss.job;
 
 import com.apptastic.rssreader.Item;
 import com.apptastic.rssreader.RssReader;
-import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.dao.ItemDao;
-import com.ramusthastudio.rss.dao.ManagementChannelDao;
+import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.JsoupParser;
 import io.quarkus.hibernate.reactive.panache.Panache;
@@ -20,7 +19,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
-import static com.ramusthastudio.rss.helper.JsoupParser.*;
+import static com.ramusthastudio.rss.helper.JsoupParser.cleanText;
+import static com.ramusthastudio.rss.helper.JsoupParser.getImageLink;
 import static com.ramusthastudio.rss.helper.ObjectProducer.readRss;
 
 @ApplicationScoped
@@ -32,10 +32,10 @@ public class FetchRssJob {
         Log.infof("Starting fetch RSS data ⚡");
 
         Panache.withTransaction(() ->
-                        ManagementChannelDao.findAll()
+                        ChannelDao.findAll()
                                 .filter("deletedFilter", Parameters.with("isDeleted", false))
                                 .stream()
-                                .onItem().transformToUniAndMerge(channel -> persistAndUpdate((ManagementChannelDao) channel))
+                                .onItem().transformToUniAndMerge(channel -> persistAndUpdate((ChannelDao) channel))
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni()
                 )
@@ -78,7 +78,7 @@ public class FetchRssJob {
                 .await().indefinitely();
     }
 
-    public Uni<Void> persistAndUpdate(ManagementChannelDao channelDao) {
+    public Uni<Void> persistAndUpdate(ChannelDao channelDao) {
         Log.infof("channel = %s", channelDao.link);
 
         DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
@@ -94,15 +94,8 @@ public class FetchRssJob {
             itemDao.guid = r.getGuid().orElse(null);
             itemDao.isPermaLink = r.getIsPermaLink().orElse(null);
             itemDao.pubDate = ZonedDateTime.from(formatter.parse(r.getPubDate().orElse(formatter.format(ZonedDateTime.now()))));
-
-            ChannelDao channel = new ChannelDao();
-            channel.title = channelDao.title;
-            channel.description = channelDao.description;
-            channel.category = channelDao.category;
-            channel.language = channelDao.language;
-            channel.link = channelDao.link;
-
-            itemDao.channel = channel;
+            itemDao.imageUrl = JsoupParser.FALLBACK_IMG;
+            itemDao.channel = channelDao;
 
             Log.infof("found news = %s link = %s", itemDao.title, itemDao.link);
             return itemDao;

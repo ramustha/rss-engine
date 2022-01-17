@@ -1,6 +1,6 @@
 package com.ramusthastudio.rss.resources;
 
-import com.ramusthastudio.rss.dao.ManagementChannelDao;
+import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.QueryFilter;
 import io.quarkus.cache.CacheResult;
@@ -22,7 +22,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Map;
 
-@Path("/")
+@Path("news")
 @ApplicationScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -30,14 +30,14 @@ public class NewsResource {
 
     @GET
     @CacheResult(cacheName = "news-cache")
-    @Path("news/{id}")
-    public Uni<ManagementChannelDao> getNewsBy(@NotBlank @PathParam("id") String id) {
+    @Path("{id}")
+    public Uni<ChannelDao> getNewsBy(@NotBlank @PathParam("id") String id) {
         return NewsDao.findById(id);
     }
 
     @GET
     @CacheResult(cacheName = "news-list-cache")
-    @Path("news")
+    @Path("search")
     @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getNews(@Context UriInfo request) {
         Map<String, Object> map = QueryFilter.generateQuery(request, NewsDao.class);

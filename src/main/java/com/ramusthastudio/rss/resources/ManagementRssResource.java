@@ -1,0 +1,45 @@
+package com.ramusthastudio.rss.resources;
+
+import com.ramusthastudio.rss.dao.ItemDao;
+import com.ramusthastudio.rss.helper.QueryFilter;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.quarkus.panache.common.Parameters;
+import io.quarkus.panache.common.Sort;
+import io.smallrye.mutiny.Uni;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
+import java.util.List;
+import java.util.Map;
+
+@Path("management")
+@ApplicationScoped
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+public class ManagementRssResource {
+
+    @GET
+    @Path("/rss")
+    @SuppressWarnings("unchecked")
+    public Uni<List<PanacheEntityBase>> getItem(@Context UriInfo request) {
+        Map<String, Object> map = QueryFilter.generateQuery(request, ItemDao.class);
+        if (map.get("sort") == null) {
+            return ItemDao
+                    .find(map.get("query").toString(), (Map<String, Object>) map.get("parameters"))
+                    .filter("deletedFilter", Parameters.with("isDeleted", false))
+                    .page((int) map.get("index"), (int) map.get("size")).list()
+                    .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
+        }
+        return ItemDao
+                .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
+                .filter("deletedFilter", Parameters.with("isDeleted", false))
+                .page((int) map.get("index"), (int) map.get("size")).list()
+                .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
+    }
+}

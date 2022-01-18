@@ -94,7 +94,7 @@ class QueryFilterTest {
         queryParam.put("category-lk", List.of("top", "news"));
         queryParam.put("sort", List.of("title"));
         queryParam.put("order", List.of("asc"));
-        queryParam.put("createdBy-in", List.of("SYSTEM", "ROBOT"));
+        queryParam.put("createdBy-in", List.of("SYSTEM,ROBOT"));
 
         UriInfo uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getRequestUri()).thenReturn(new URI("http://localhost:8080"));

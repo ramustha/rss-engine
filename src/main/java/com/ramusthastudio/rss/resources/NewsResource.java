@@ -1,6 +1,5 @@
 package com.ramusthastudio.rss.resources;
 
-import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.QueryFilter;
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
@@ -29,7 +28,7 @@ public class NewsResource {
 
     @GET
     @Path("{id}")
-    public Uni<ChannelDao> getNewsBy(@NotBlank @PathParam("id") String id) {
+    public Uni<NewsDao> getNewsBy(@NotBlank @PathParam("id") String id) {
         return NewsDao.findById(id);
     }
 

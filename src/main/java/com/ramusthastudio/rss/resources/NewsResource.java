@@ -20,20 +20,20 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Map;
 
-@Path("news")
+@Path("/")
 @ApplicationScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class NewsResource {
 
     @GET
-    @Path("{id}")
+    @Path("/news/{id}")
     public Uni<NewsDao> getNewsBy(@NotBlank @PathParam("id") String id) {
         return NewsDao.findById(id);
     }
 
     @GET
-    @Path("search")
+    @Path("/news/search")
     @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getNews(@Context UriInfo request) {
         Map<String, Object> map = QueryFilter.generateQuery(request, NewsDao.class);

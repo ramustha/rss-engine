@@ -37,13 +37,6 @@ public class ManagementRssResource {
     @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getItem(@Context UriInfo request) {
         Map<String, Object> map = QueryFilter.generateQuery(request, ItemDao.class);
-        if (map.get("sort") == null) {
-            return ItemDao
-                    .find(map.get("query").toString(), (Map<String, Object>) map.get("parameters"))
-                    .filter("deletedFilter", Parameters.with("isDeleted", false))
-                    .page((int) map.get("index"), (int) map.get("size")).list()
-                    .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
-        }
         return ItemDao
                 .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
                 .filter("deletedFilter", Parameters.with("isDeleted", false))

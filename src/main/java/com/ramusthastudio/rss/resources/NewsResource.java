@@ -20,30 +20,23 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Map;
 
-@Path("/")
+@Path("news")
 @ApplicationScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class NewsResource {
 
     @GET
-    @Path("/news/{id}")
+    @Path("/{id}")
     public Uni<NewsDao> getNewsBy(@NotBlank @PathParam("id") String id) {
         return NewsDao.findById(id);
     }
 
     @GET
-    @Path("/news/search")
+    @Path("/search")
     @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getNews(@Context UriInfo request) {
         Map<String, Object> map = QueryFilter.generateQuery(request, NewsDao.class);
-        if (map.get("sort") == null) {
-            return NewsDao
-                    .find(map.get("query").toString(), (Map<String, Object>) map.get("parameters"))
-                    .filter("deletedFilter", Parameters.with("isDeleted", false))
-                    .page((int) map.get("index"), (int) map.get("size")).list()
-                    .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
-        }
         return NewsDao
                 .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
                 .filter("deletedFilter", Parameters.with("isDeleted", false))

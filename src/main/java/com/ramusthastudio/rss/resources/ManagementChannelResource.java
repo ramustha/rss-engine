@@ -72,12 +72,6 @@ public class ManagementChannelResource {
     @SuppressWarnings("unchecked")
     public Uni<List<ChannelDao>> getChannel(@Context UriInfo request) {
         Map<String, Object> map = QueryFilter.generateQuery(request, ChannelDao.class);
-        if (map.get("sort") == null) {
-            return ChannelDao
-                    .find(map.get("query").toString(), (Map<String, Object>) map.get("parameters"))
-                    .filter("deletedFilter", Parameters.with("isDeleted", false))
-                    .page((int) map.get("index"), (int) map.get("size")).list();
-        }
         return ChannelDao
                 .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
                 .filter("deletedFilter", Parameters.with("isDeleted", false))

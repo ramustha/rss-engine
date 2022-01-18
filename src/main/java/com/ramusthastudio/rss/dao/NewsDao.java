@@ -9,7 +9,6 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.SQLDelete;
 
-import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,7 +21,6 @@ import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 
 @Entity
-@Cacheable
 @Table(name = "news")
 @SQLDelete(sql = "UPDATE item SET deleted = true WHERE id = $1")
 @FilterDef(name = "deletedFilter", parameters = @ParamDef(name = "isDeleted", type = "boolean"))

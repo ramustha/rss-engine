@@ -187,6 +187,8 @@ public class QueryFilter {
             boolean isAscending = result.get("order").equals("asc");
             result.put("sort", Sort.by(sort,
                     isAscending ? Sort.Direction.Ascending : Sort.Direction.Descending));
+        } else {
+            result.put("sort", Sort.empty());
         }
 
         return result;

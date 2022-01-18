@@ -2,6 +2,7 @@ package com.ramusthastudio.rss.helper;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.quarkus.logging.Log;
 import io.quarkus.panache.common.Sort;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -161,7 +162,8 @@ public class QueryFilter {
             if (operand.equals("in") || operand.equals("nin")) {
                 finalQuery.add(String.format("%s %s :%s", finalField, QueryFilter.OPERANDS.get(operand), finalField));
                 Object enumType = findPossibleType(finalField, entry.getValue(), entity);
-                parameters.put(finalField, Objects.requireNonNullElse(enumType, entry.getValue()));
+                parameters.put(finalField, Objects.requireNonNullElse(enumType, entry.getValue().stream()
+                        .map(e -> Lists.newArrayList(e.split(","))).findFirst().orElse(Lists.newArrayList())));
             } else if (operand.equals("lk") || operand.equals("nlk")) {
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     finalQuery.add(String.format("lower(%s) %s :%s", finalField, QueryFilter.OPERANDS.get(operand), finalField + i));

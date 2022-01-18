@@ -39,6 +39,7 @@ public class FetchRssJob {
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni()
                 )
+                .chain(Panache::flush)
                 .await().indefinitely();
 
     }
@@ -72,10 +73,11 @@ public class FetchRssJob {
 
                                                     Log.infof("save news = %s", item);
                                                     return itemDao.persist().chain(newsDao::persist);
-                                                }))
+                                                }).onFailure().recoverWithNull())
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni()
                 )
+                .chain(Panache::flush)
                 .await().indefinitely();
     }
 
@@ -137,7 +139,7 @@ public class FetchRssJob {
 
                                     Log.infof("save item = %s", item);
                                     return item.channel.persist().chain(item::persist);
-                                }))
+                                }).onFailure().recoverWithNull())
                 .onItem().ignoreAsUni();
     }
 }

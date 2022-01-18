@@ -13,6 +13,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
+import javax.persistence.LockModeType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -50,7 +51,9 @@ public class ItemDao extends AutoIdentityEntityBase {
     public ChannelDao channel;
 
     public static Uni<PanacheEntityBase> findDuplicate(ItemDao item) {
-        return find("title = ?1 and link = ?2", item.title, item.link).firstResult();
+        return find("title = ?1 and link = ?2", item.title, item.link)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
+                .firstResult();
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.ramusthastudio.rss.resources;
 import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.QueryFilter;
-import io.quarkus.cache.CacheResult;
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.quarkus.panache.common.Parameters;
 import io.quarkus.panache.common.Sort;
@@ -29,7 +28,6 @@ import java.util.Map;
 public class NewsResource {
 
     @GET
-    @CacheResult(cacheName = "news-cache")
     @Path("{id}")
     public Uni<ChannelDao> getNewsBy(@NotBlank @PathParam("id") String id) {
         return NewsDao.findById(id);

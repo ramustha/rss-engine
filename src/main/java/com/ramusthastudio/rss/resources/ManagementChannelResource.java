@@ -2,7 +2,6 @@ package com.ramusthastudio.rss.resources;
 
 import com.ramusthastudio.rss.dao.ChannelDao;
 import com.ramusthastudio.rss.helper.QueryFilter;
-import io.quarkus.cache.CacheResult;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.panache.common.Parameters;
 import io.quarkus.panache.common.Sort;
@@ -39,7 +38,6 @@ public class ManagementChannelResource {
     }
 
     @GET
-    @CacheResult(cacheName = "channel-cache")
     @Path("channel/{id}")
     public Uni<ChannelDao> getChannelBy(@NotBlank @PathParam("id") String id) {
         return ChannelDao.findById(id);

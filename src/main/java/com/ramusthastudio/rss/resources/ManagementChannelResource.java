@@ -1,10 +1,8 @@
 package com.ramusthastudio.rss.resources;
 
 import com.ramusthastudio.rss.dao.ChannelDao;
-import com.ramusthastudio.rss.helper.QueryFilter;
 import io.quarkus.hibernate.reactive.panache.Panache;
-import io.quarkus.panache.common.Parameters;
-import io.quarkus.panache.common.Sort;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -23,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
-import java.util.Map;
 
 @Path("management")
 @ApplicationScoped
@@ -69,12 +66,7 @@ public class ManagementChannelResource {
 
     @GET
     @Path("channel")
-    @SuppressWarnings("unchecked")
-    public Uni<List<ChannelDao>> getChannel(@Context UriInfo request) {
-        Map<String, Object> map = QueryFilter.generateQuery(request, ChannelDao.class);
-        return ChannelDao
-                .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
-                .filter("deletedFilter", Parameters.with("isDeleted", false))
-                .page((int) map.get("index"), (int) map.get("size")).list();
+    public Uni<List<PanacheEntityBase>> getChannel(@Context UriInfo request) {
+        return ChannelDao.getFilter(request, ChannelDao.class);
     }
 }

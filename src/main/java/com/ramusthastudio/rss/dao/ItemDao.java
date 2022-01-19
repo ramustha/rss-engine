@@ -2,6 +2,8 @@ package com.ramusthastudio.rss.dao;
 
 import com.ramusthastudio.rss.dao.base.AutoIdentityEntityBase;
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.quarkus.panache.common.Parameters;
+import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -16,7 +18,13 @@ import javax.persistence.LockModeType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+
+import static com.ramusthastudio.rss.helper.QueryFilter.generateQuery;
 
 @Entity
 @Table(name = "item")
@@ -52,6 +60,16 @@ public class ItemDao extends AutoIdentityEntityBase {
         return find("title = ?1 and link = ?2", item.title, item.link)
                 .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResult();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Uni<List<PanacheEntityBase>> getFilter(@Context UriInfo request, Class<?> entity) {
+        Map<String, Object> map = generateQuery(request, entity);
+        return ItemDao
+                .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
+                .filter("deletedFilter", Parameters.with("isDeleted", false))
+                .page((int) map.get("index"), (int) map.get("size")).list()
+                .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
     }
 
     @Override

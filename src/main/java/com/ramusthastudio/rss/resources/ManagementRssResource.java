@@ -1,10 +1,8 @@
 package com.ramusthastudio.rss.resources;
 
+import com.ramusthastudio.rss.dao.DuplicateItemDao;
 import com.ramusthastudio.rss.dao.ItemDao;
-import com.ramusthastudio.rss.helper.QueryFilter;
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
-import io.quarkus.panache.common.Parameters;
-import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,7 +16,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
-import java.util.Map;
 
 @Path("management")
 @ApplicationScoped
@@ -28,19 +25,19 @@ public class ManagementRssResource {
 
     @GET
     @Path("/rss/{id}")
-    public Uni<ItemDao> getItemBy(@NotBlank @PathParam("id") String id) {
+    public Uni<PanacheEntityBase> getItemBy(@NotBlank @PathParam("id") String id) {
         return ItemDao.findById(id);
     }
 
     @GET
     @Path("/rss")
-    @SuppressWarnings("unchecked")
     public Uni<List<PanacheEntityBase>> getItem(@Context UriInfo request) {
-        Map<String, Object> map = QueryFilter.generateQuery(request, ItemDao.class);
-        return ItemDao
-                .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
-                .filter("deletedFilter", Parameters.with("isDeleted", false))
-                .page((int) map.get("index"), (int) map.get("size")).list()
-                .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));
+        return ItemDao.getFilter(request, ItemDao.class);
+    }
+
+    @GET
+    @Path("/duplicate-item")
+    public Uni<List<PanacheEntityBase>> getDuplicateItem(@Context UriInfo request) {
+        return DuplicateItemDao.getFilter(request, DuplicateItemDao.class);
     }
 }

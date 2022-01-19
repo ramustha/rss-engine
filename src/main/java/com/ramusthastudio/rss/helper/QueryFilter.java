@@ -2,7 +2,6 @@ package com.ramusthastudio.rss.helper;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.quarkus.logging.Log;
 import io.quarkus.panache.common.Sort;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -135,6 +134,7 @@ public class QueryFilter {
         result.put("order", query.getOrDefault("order", Collections.singletonList("asc")).get(0));
         result.put("index", Integer.parseInt(query.getOrDefault("index", Collections.singletonList("0")).get(0)));
         result.put("size", Integer.parseInt(query.getOrDefault("size", Collections.singletonList("20")).get(0)));
+        result.put("operator", query.getOrDefault("operator", Collections.singletonList("AND")).get(0));
 
         List<String> finalQuery = Lists.newArrayList();
         Map<String, Object> parameters = Maps.newHashMap();
@@ -179,7 +179,7 @@ public class QueryFilter {
             }
         }
 
-        result.put("query", String.join(" AND ", finalQuery));
+        result.put("query", String.join(" " + result.get("operator") + " ", finalQuery));
         result.put("parameters", parameters);
 
         if (query.get("sort") != null) {

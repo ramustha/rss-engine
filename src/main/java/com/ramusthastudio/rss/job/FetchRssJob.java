@@ -41,7 +41,6 @@ public class FetchRssJob {
                 )
                 .chain(Panache::flush)
                 .await().indefinitely();
-
     }
 
     @Scheduled(cron = "{convert.cron.expr}")
@@ -114,11 +113,9 @@ public class FetchRssJob {
 
             Log.infof("found news = %s link = %s", itemDao.title, itemDao.link);
             return itemDao;
-        });
+        }).distinct();
 
         return Multi.createFrom().items(itemDaoList)
-                .onFailure().invoke(Throwable::printStackTrace)
-                .onFailure().retry().atMost(3)
                 .onItem().transformToUniAndMerge(item ->
                         ItemDao.findDuplicate(item)
                                 .onItem().ifNotNull().transform(current -> {
@@ -138,8 +135,9 @@ public class FetchRssJob {
                                 }).onItem().ifNull().switchTo(() -> {
 
                                     Log.infof("save item = %s", item);
-                                    return item.channel.persist().chain(item::persist);
+                                    return item.persist();
                                 }).onFailure().recoverWithNull())
+                .onFailure().invoke(Throwable::printStackTrace)
                 .onItem().ignoreAsUni();
     }
 }

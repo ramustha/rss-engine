@@ -1,0 +1,4 @@
+GET {{host}}/api/news/123456789
+
+###
+GET {{host}}/api/news/search

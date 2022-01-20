@@ -1,0 +1,7 @@
+GET {{host}}/api/management/rss/123456789
+
+###
+GET {{host}}/api/management/rss
+
+###
+GET {{host}}/api/duplicate-item

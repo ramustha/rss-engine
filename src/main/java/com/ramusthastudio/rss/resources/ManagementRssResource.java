@@ -32,12 +32,12 @@ public class ManagementRssResource {
     @GET
     @Path("/rss")
     public Uni<List<PanacheEntityBase>> getItem(@Context UriInfo request) {
-        return ItemDao.getFilter(request, ItemDao.class);
+        return ItemDao.find(request, ItemDao.class);
     }
 
     @GET
     @Path("/duplicate-item")
     public Uni<List<PanacheEntityBase>> getDuplicateItem(@Context UriInfo request) {
-        return DuplicateItemDao.getFilter(request, DuplicateItemDao.class);
+        return DuplicateItemDao.find(request, DuplicateItemDao.class);
     }
 }

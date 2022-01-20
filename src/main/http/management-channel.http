@@ -1,0 +1,29 @@
+POST {{host}}/api/management/channel
+Content-Type: application/json
+
+{
+  "link": "https://www.suara.com/rss/bisnis",
+  "category": "BISNIS,SUARA",
+  "title": "Suara",
+  "language": "ID"
+}
+
+###
+GET {{host}}/api/management/channel
+
+###
+GET {{host}}/api/management/channel/e610f03da4d542008c951f1f07ef18a4
+
+###
+PUT {{host}}/api/management/channel/e610f03da4d542008c951f1f07ef18a4
+Content-Type: application/json
+
+{
+  "link": "https://www.antaranews.com/rss/top-news.xml",
+  "category": "PRIVATE",
+  "title": "Antara News",
+  "language": "ID"
+}
+
+###
+DELETE {{host}}/api/management/channel/b4bcdc0ad74047468b64d00379275e5f

@@ -31,6 +31,6 @@ public class NewsResource {
     @GET
     @Path("/search")
     public Uni<List<PanacheEntityBase>> getNews(@Context UriInfo request) {
-        return NewsDao.getFilter(request, NewsDao.class);
+        return NewsDao.find(request, NewsDao.class);
     }
 }

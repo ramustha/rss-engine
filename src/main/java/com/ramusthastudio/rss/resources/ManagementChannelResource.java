@@ -67,6 +67,6 @@ public class ManagementChannelResource {
     @GET
     @Path("channel")
     public Uni<List<PanacheEntityBase>> getChannel(@Context UriInfo request) {
-        return ChannelDao.getFilter(request, ChannelDao.class);
+        return ChannelDao.find(request, ChannelDao.class);
     }
 }

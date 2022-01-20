@@ -40,10 +40,9 @@ public class ChannelDao extends AutoIdentityEntityBase {
     public String link;
 
     @SuppressWarnings("unchecked")
-    public static Uni<List<PanacheEntityBase>> getFilter(@Context UriInfo request, Class<?> entity) {
+    public static Uni<List<PanacheEntityBase>> find(@Context UriInfo request, Class<?> entity) {
         Map<String, Object> map = generateQuery(request, entity);
-        return ChannelDao
-                .find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
+        return find(map.get("query").toString(), (Sort) map.get("sort"), (Map<String, Object>) map.get("parameters"))
                 .filter("deletedFilter", Parameters.with("isDeleted", false))
                 .page((int) map.get("index"), (int) map.get("size")).list()
                 .onFailure().recoverWithUni(() -> Uni.createFrom().item(List.of()));

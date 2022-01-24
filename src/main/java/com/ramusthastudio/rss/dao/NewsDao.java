@@ -71,6 +71,12 @@ public class NewsDao extends AutoIdentityEntityBase {
                 .firstResult();
     }
 
+    public static Uni<PanacheEntityBase> findDuplicate(DuplicateItemDao item) {
+        return find("title = ?1 and link = ?2", item.title, item.link)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
+                .firstResult();
+    }
+
     @SuppressWarnings("unchecked")
     public static Uni<List<PanacheEntityBase>> find(@Context UriInfo request, Class<?> entity) {
         Map<String, Object> map = generateQuery(request, entity);

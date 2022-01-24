@@ -90,27 +90,28 @@ public class FetchRssJob {
                                 .stream()
                                 .onItem().transformToUniAndMerge(item -> {
                                     DuplicateItemDao duplicateItemDao = (DuplicateItemDao) item;
-
-                                    Log.infof("found duplicate = %s", duplicateItemDao.title);
-                                    if (duplicateItemDao.source.equals("news")) {
-                                        return ItemDao.find("title", duplicateItemDao.title).firstResult()
-                                                .onItem().ifNotNull()
-                                                .transformToUni(i -> {
+                                    if (duplicateItemDao.source.equals("item")) {
+                                        return ItemDao.findDuplicate(duplicateItemDao)
+                                                .onItem().ifNotNull().transform(i -> {
                                                     ItemDao itemDao = (ItemDao) i;
                                                     itemDao.deleted = true;
+
+                                                    Log.infof("found duplicate item = %s", itemDao.title);
                                                     return itemDao.persist();
                                                 });
                                     }
-                                    return NewsDao.find("title", duplicateItemDao.title).firstResult()
-                                            .onItem().ifNotNull()
-                                            .transformToUni(i -> {
+                                    return NewsDao.findDuplicate(duplicateItemDao)
+                                            .onItem().ifNotNull().transform(i -> {
                                                 NewsDao newsDao = (NewsDao) i;
                                                 newsDao.deleted = true;
+
+                                                Log.infof("found duplicate news = %s", newsDao.title);
                                                 return newsDao.persist();
                                             });
                                 })
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni())
+                .chain(Panache::flush)
                 .await().indefinitely();
     }
 

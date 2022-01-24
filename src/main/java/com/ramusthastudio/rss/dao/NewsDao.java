@@ -61,19 +61,19 @@ public class NewsDao extends AutoIdentityEntityBase {
 
     public static Uni<PanacheEntityBase> findDuplicate(NewsDao item) {
         return find("title = ?1 and link = ?2", item.title, item.link)
-                .withLock(LockModeType.PESSIMISTIC_WRITE)
+                .withLock(LockModeType.PESSIMISTIC_READ)
                 .firstResult();
     }
 
     public static Uni<PanacheEntityBase> findDuplicate(ItemDao item) {
         return find("title = ?1 and link = ?2", item.title, item.link)
-                .withLock(LockModeType.PESSIMISTIC_WRITE)
+                .withLock(LockModeType.PESSIMISTIC_READ)
                 .firstResult();
     }
 
     public static Uni<PanacheEntityBase> findDuplicate(DuplicateItemDao item) {
         return find("title = ?1 and link = ?2", item.title, item.link)
-                .withLock(LockModeType.PESSIMISTIC_WRITE)
+                .withLock(LockModeType.PESSIMISTIC_READ)
                 .firstResult();
     }
 

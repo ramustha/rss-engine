@@ -81,7 +81,7 @@ public class FetchRssJob {
                 .await().indefinitely();
     }
 
-    @Scheduled(cron = "{duplicate.cron.expr}")
+    @Scheduled(every = "{duplicate.every.expr}", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void executeDuplicateJob() {
         Log.infof("Starting remove duplicate RSS data ⚡");
 
@@ -98,7 +98,8 @@ public class FetchRssJob {
 
                                                     Log.infof("found duplicate item = %s", itemDao.title);
                                                     return itemDao.persist();
-                                                });
+                                                })
+                                                .onItem().ifNull().fail();
                                     }
                                     return NewsDao.findDuplicate(duplicateItemDao)
                                             .onItem().ifNotNull().transform(i -> {
@@ -107,7 +108,8 @@ public class FetchRssJob {
 
                                                 Log.infof("found duplicate news = %s", newsDao.title);
                                                 return newsDao.persist();
-                                            });
+                                            })
+                                            .onItem().ifNull().fail();
                                 })
                                 .onFailure().invoke(Throwable::printStackTrace)
                                 .onItem().ignoreAsUni())

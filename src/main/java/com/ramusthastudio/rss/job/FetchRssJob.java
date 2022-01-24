@@ -3,6 +3,7 @@ package com.ramusthastudio.rss.job;
 import com.apptastic.rssreader.Item;
 import com.apptastic.rssreader.RssReader;
 import com.ramusthastudio.rss.dao.ChannelDao;
+import com.ramusthastudio.rss.dao.DuplicateItemDao;
 import com.ramusthastudio.rss.dao.ItemDao;
 import com.ramusthastudio.rss.dao.NewsDao;
 import com.ramusthastudio.rss.helper.JsoupParser;
@@ -44,7 +45,7 @@ public class FetchRssJob {
     }
 
     @Scheduled(cron = "{convert.cron.expr}")
-    public void executeConverterJon() {
+    public void executeConverterJob() {
         Log.infof("Starting convert RSS data ⚡");
 
         Panache.withTransaction(() ->
@@ -77,6 +78,39 @@ public class FetchRssJob {
                                 .onItem().ignoreAsUni()
                 )
                 .chain(Panache::flush)
+                .await().indefinitely();
+    }
+
+    @Scheduled(cron = "{duplicate.cron.expr}")
+    public void executeDuplicateJob() {
+        Log.infof("Starting remove duplicate RSS data ⚡");
+
+        Panache.withTransaction(() ->
+                        DuplicateItemDao.findAll()
+                                .stream()
+                                .onItem().transformToUniAndMerge(item -> {
+                                    DuplicateItemDao duplicateItemDao = (DuplicateItemDao) item;
+
+                                    Log.infof("found duplicate = %s", duplicateItemDao.title);
+                                    if (duplicateItemDao.source.equals("news")) {
+                                        return ItemDao.find("title", duplicateItemDao.title).firstResult()
+                                                .onItem().ifNotNull()
+                                                .transformToUni(i -> {
+                                                    ItemDao itemDao = (ItemDao) i;
+                                                    itemDao.deleted = true;
+                                                    return itemDao.persist();
+                                                });
+                                    }
+                                    return NewsDao.find("title", duplicateItemDao.title).firstResult()
+                                            .onItem().ifNotNull()
+                                            .transformToUni(i -> {
+                                                NewsDao newsDao = (NewsDao) i;
+                                                newsDao.deleted = true;
+                                                return newsDao.persist();
+                                            });
+                                })
+                                .onFailure().invoke(Throwable::printStackTrace)
+                                .onItem().ignoreAsUni())
                 .await().indefinitely();
     }
 
